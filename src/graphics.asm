@@ -112,6 +112,7 @@ Draw_Circle_Loop:
 	add [bp - circleerr], word 1d
 
 Draw_Circle_Radius_NotLessThanOrEqualTo_CircleY:
+	mov si, [bp - circlex] ;new boi
 	cmp [bp + radius], si
 	jle Draw_Circle_Radius_NotGreaterThan_CircleX
 
@@ -122,6 +123,8 @@ Draw_Circle_Radius_NotLessThanOrEqualTo_CircleY:
 	add [bp - circleerr], word 1d
 
 Draw_Circle_Radius_NotGreaterThan_CircleX:
+	jg Draw_Circle_Err_NotGreaterThan_CircleY ;if the first condition was met and actions taken, they won't be taken again
+
 	mov si, [bp - circley]
 	cmp [bp - circleerr], si
 	jle Draw_Circle_Err_NotGreaterThan_CircleY
