@@ -12,7 +12,7 @@ IMAGE=uodos
 	
 boot.bin: boot.asm functions_16.asm bpb.asm
 
-boot2.bin: boot2.asm functions_16.asm a20.asm bpb.asm floppy16.asm fat12.asm graphics.asm messages.asm
+boot2.bin: boot2.asm a20.asm bpb.asm floppy16.asm fat12.asm graphics.asm messages.asm
 
 $(IMAGE).img: boot.bin boot2.bin
 #	Get the blank disk image
