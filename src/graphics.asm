@@ -233,99 +233,43 @@ Draw_Rectangle_Loop_Hook:
 	jmp Draw_Rectangle_Loop
 
 Draw_Line_Horizontal:
-	; push ax
-	; push es
-	; push di
-
-	; mov ax, 0a000h
-	; mov es, ax
-
-	; mov di, 0
-	; %rep 320
-	; 	add di, dx
-	; %endrep
-	; add di, cx
-
-	; mov al, [line_colour]
-	
-	; mov [es:di], al
-
-	; pop di
-	; pop es
-	; pop ax
-
-	; ret
-
-	;xstart
-	;ystart
-	;length
+	push bp
+	mov bp, sp
 
 	push ax
 	push es
 	push di
-	push dx
 	push cx
 
-	mov ax, 0a000h
+	mov ax, 0A000h
 	mov es, ax
-	mov di, 0
 
-	%rep 320
-		add di, [bp + ystart]
-	%endrep
+	xor di, di
+
+	mov cx, [bp + ystart]
+	shl cx, 8
+	add di, cx
+	
+	mov cx, [bp + ystart]
+	shl cx, 6
+	add di, cx
 
 	add di, [bp + xstart]
 	mov cx, [bp + length]
 
 	mov al, [line_colour]
 
-	; mov [es:di], al
 	rep stosb
 
 	pop cx
-	pop dx
 	pop di
 	pop es
 	pop ax
 
 	mov sp, bp
 	pop bp
+	
 	ret
-
-; 	;alt
-; 	push bp
-; 	mov bp, sp
-
-; 	push dx
-; 	push cx
-
-; 	mov bx, [bp + xstart]
-; 	add bx, [bp + length]
-
-; 	mov cx, [bp + xstart]
-; 	mov dx, [bp + ystart]
-
-; 	call Draw_Line_Horizontal_Repeat
-
-; 	pop cx
-; 	pop dx
-
-; 	mov sp, bp
-; 	pop bp
-; 	ret
-
-; Draw_Line_Horizontal_Repeat:
-; 	call Draw_Pixel
-
-; 	cmp cx, bx
-; 	je Draw_Line_Horizontal_Exit
-
-; 	inc cx
-
-; 	jmp Draw_Line_Horizontal_Repeat
-
-; Draw_Line_Horizontal_Exit:
-; 	ret
 
 ;bresenham line params
 %assign xstart 4
