@@ -47,20 +47,25 @@ Draw_Pixel:
 	push ax
 	push es
 	push di
+	push si
 
-	mov ax, 0a000h
+	mov ax, 0A000h
 	mov es, ax
 
-	mov di, 0
-	%rep 320
-		add di, dx
-	%endrep
+	mov di, dx
+	shl di, 8
+	
+	mov si, dx
+	shl si, 6
+	add di, si
+
 	add di, cx
 
 	mov al, [line_colour]
 	
 	mov [es:di], al
 
+	pop si
 	pop di
 	pop es
 	pop ax
@@ -244,11 +249,8 @@ Draw_Line_Horizontal:
 	mov ax, 0A000h
 	mov es, ax
 
-	xor di, di
-
-	mov cx, [bp + ystart]
-	shl cx, 8
-	add di, cx
+	mov di, [bp + ystart]
+	shl di, 8
 	
 	mov cx, [bp + ystart]
 	shl cx, 6
