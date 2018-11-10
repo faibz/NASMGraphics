@@ -1,39 +1,4 @@
-Set_Background_Colour:
-	mov ah, 0Bh
-	mov bh, 00h
-	mov bl, 13h
-
-	int 10h
-
-	ret
-
-Get_And_Set_Line_Colour:
-	mov si, colour_select_message
-	call Console_WriteLine_16
-
-	xor ah, ah
-	int 16h
-
-	sub al, 49d
-	cmp al, byte 7d
-	jg Set_Line_Colour_Default
-	cmp al, byte 1d
-	jl Set_Line_Colour_Default
-
-	xor ah, ah
-	cbw
-	mov si, ax
-
-	mov si, [si + available_colors]
-	mov ax, si
-	mov [line_colour], byte al
-
-	ret
-
-Set_Line_Colour_Default:
-	mov ah, byte 9d
-
-	ret
+%include "graphics_shapes.asm"
 
 Set_Video_Mode:
 	mov ah, byte 00h
@@ -43,344 +8,187 @@ Set_Video_Mode:
 
 	ret
 
-Draw_Pixel:
-	push ax
-	push es
-	push di
-	push si
+Draw_House_Scene:
+	;ground
+	mov word [colour], 2d
+	push word 80d ;length
+	push word 25d ;height
+	push word 125d ;ystart
+	push word 220d ;xstart
+	call Draw_Rectangle
 
-	mov ax, 0A000h
-	mov es, ax
+	;sky
+	mov word [colour], 11d
+	push word 80d
+	push word 100d
+	push word 25d
+	push word 220d
+	call Draw_Rectangle
 
-	mov di, dx
-	shl di, 8
+	;house
+	mov word [colour], 6d
+	push word 40d
+	push word 25d
+	push word 100d
+	push word 240d
+	call Draw_Rectangle
+
+	;path
+	mov word [colour], 8d
+	push word 6d
+	push word 20d
+	push word 125d
+	push word 257d
+	call Draw_Rectangle
+
+	;road
+	push word 80d
+	push word 6d
+	push word 140d
+	push word 220d
+	call Draw_Rectangle 
 	
-	mov si, dx
-	shl si, 6
-	add di, si
+	;door
+	mov word [colour], 4d
+	push word 6d
+	push word 10d
+	push word 115d
+	push word 257d
+	call Draw_Rectangle
 
-	add di, cx
+	;window
+	mov word [colour], 15d
+	push word 7d
+	push word 7d
+	push word 110d
+	push word 245d
+	call Draw_Rectangle
 
-	mov al, [line_colour]
-	
-	mov [es:di], al
+	;window 2
+	push word 7d
+	push word 7d
+	push word 110d
+	push word 268d
+	call Draw_Rectangle
 
-	pop si
-	pop di
-	pop es
-	pop ax
+	;roof
+	mov word [colour], 0d
+	push word 22d ;height
+	push word 76d ;ystart
+	push word 260d ;xstart
+	call Draw_Triangle
+
+	;sun
+	mov word [colour], 14d
+	push word 5d ;radius
+	push word 50d; origin y
+	push word 260d; origin x
+	call Draw_Circle
+
+	push word 4d ;radius
+	push word 50d; origin y
+	push word 260d; origin x
+	call Draw_Circle
+
+	push word 3d ;radius
+	push word 50d; origin y
+	push word 260d; origin x
+	call Draw_Circle
+
+	push word 2d ;radius
+	push word 50d; origin y
+	push word 260d; origin x
+	call Draw_Circle
+
+	push word 1d ;radius
+	push word 50d; origin y
+	push word 260d; origin x
+	call Draw_Circle
 
 	ret
 
-;circle params
-%assign originx 4
-%assign originy 6
-%assign radius 8
-
-;circle vars
-%assign circlex 2
-%assign circley 4
-%assign circleerr 6
-
-Draw_Circle:
+Run_Animation:
 	push bp
 	mov bp, sp
-	sub sp, 6
 
-	push si
 	push cx
-	push dx
-
-	mov si, [bp + radius]
-	mov [bp - circlex], si
-	neg word [bp - circlex]
-
-	mov [bp - circley], word 0d
-
-	mov [bp - circleerr], word 2d
-	mov si, [bp + radius]
-	add si, si
-	sub [bp - circleerr], si
-
-Draw_Circle_Loop:
-	mov cx, [bp + originx]
-	sub cx, [bp - circlex]
-	mov dx, [bp + originy]
-	add dx, [bp - circley]
-	call Draw_Pixel
-
-	mov cx, [bp + originx]
-	sub cx, [bp - circley]
-	mov dx, [bp + originy]
-	sub dx, [bp - circlex]
-	call Draw_Pixel
-
-	mov cx, [bp + originx]
-	add cx, [bp - circlex]
-	mov dx, [bp + originy]
-	sub dx, [bp - circley]
-	call Draw_Pixel
-
-	mov cx, [bp + originx]
-	add cx, [bp - circley]
-	mov dx, [bp + originy]
-	add dx, [bp - circlex]
-	call Draw_Pixel
-
-	mov si, [bp - circleerr]
-	mov [bp + radius], si
-	
-	mov si, [bp - circley]
-	cmp [bp + radius], si
-	jg Draw_Circle_Radius_NotLessThanOrEqualTo_CircleY
-
-	add [bp - circley], word 1d
-	mov si, [bp - circley]
-	add [bp - circleerr], si
-	add [bp - circleerr], si
-	add [bp - circleerr], word 1d
-
-Draw_Circle_Radius_NotLessThanOrEqualTo_CircleY:
-	mov si, [bp - circlex]
-	cmp [bp + radius], si
-	jle Draw_Circle_Radius_NotGreaterThan_CircleX
-
-	add [bp - circlex], word 1d
-	mov si, [bp - circlex]
-	add [bp - circleerr], si
-	add [bp - circleerr], si
-	add [bp - circleerr], word 1d
-
-Draw_Circle_Radius_NotGreaterThan_CircleX:
-	jg Draw_Circle_Err_NotGreaterThan_CircleY ;if the first condition was met and actions taken, they won't be taken again
-
-	mov si, [bp - circley]
-	cmp [bp - circleerr], si
-	jle Draw_Circle_Err_NotGreaterThan_CircleY
-
-	add [bp - circlex], word 1d
-	mov si, [bp - circlex]
-	add [bp - circleerr], si
-	add [bp - circleerr], si
-	add [bp - circleerr], word 1d
-
-Draw_Circle_Err_NotGreaterThan_CircleY:
-	cmp [bp - circlex], word 0d
-	jl Draw_Circle_Loop
-
-	pop dx
-	pop cx
-	pop si
-
-	mov sp, bp
-	pop bp
-
-	ret 6
-
-;rect params
-%assign rectxstart 4
-%assign rectystart 6
-%assign rectheight 8
-%assign rectlength 10
-
-;rect vars
-%assign xfinish 2
-%assign yfinish 4
-
-;rect line params
-%assign xstart 4
-%assign ystart 6
-%assign length 8
-
-Draw_Rectangle:
-	push bp
-	mov bp, sp
-	sub sp, 4
-
 	push dx
 	push ax
 	push si
 
-	mov ax, [bp + xstart]
-	add ax, [bp + rectlength]
-	mov [bp - xfinish], ax
+	mov cx, word 35d
+	mov dx, word 55d
+	xor ax, ax
+	xor si, si
 
-	mov ax, [bp + ystart]
-	add ax, [bp + rectheight]
-	mov [bp - yfinish], ax
+	mov [colour], word 0d
 
-	mov dx, [bp + rectystart]
+Run_Animation_Loop:
+	call Short_Wait
 
-	mov si, word 1d
-
-Draw_Rectangle_Loop:
-	push word [bp + rectlength]
 	push dx
-	push word [bp + rectxstart]
-	call Draw_Line_Horizontal
+	push cx
+	call Draw_Pixel
+
+	push dx
+	push cx
+	call Draw_Pixel
 
 	inc dx
+	inc ax
 
-	cmp si, [bp + rectheight]
-	jl Draw_Rectangle_Loop_Hook
+	cmp ax, word 40d
+	jl Run_Animation_Loop
+
+	cmp si, word 2d
+	jl Run_Animation_Inc_Then_Loop
+
+	mov cx, word 36d
+	mov dx, word 75d
+	xor ax, ax
+
+Run_Animation_Loop_End:
+	call Short_Wait
+
+	push dx
+	push cx
+	call Draw_Pixel
+
+	inc cx
+	inc ax
+	cmp ax, word 25d
+	jl Run_Animation_Loop_End
 
 	pop si
 	pop ax
 	pop dx
-
-	mov sp, bp
-	pop bp
-
-	ret 4
-
-Draw_Rectangle_Loop_Hook:
-	inc si
-	jmp Draw_Rectangle_Loop
-
-Draw_Line_Horizontal:
-	push bp
-	mov bp, sp
-
-	push ax
-	push es
-	push di
-	push cx
-
-	mov ax, 0A000h
-	mov es, ax
-
-	mov di, [bp + ystart]
-	shl di, 8
-	
-	mov cx, [bp + ystart]
-	shl cx, 6
-	add di, cx
-
-	add di, [bp + xstart]
-	mov cx, [bp + length]
-
-	mov al, [line_colour]
-
-	rep stosb
-
 	pop cx
-	pop di
-	pop es
-	pop ax
 
 	mov sp, bp
 	pop bp
-	
+
 	ret
 
-;bresenham line params
-%assign xstart 4
-%assign xfinish 6
-%assign ystart 8
-%assign yfinish 10
+Run_Animation_Inc_Then_Loop:
+	inc si
+	add cx, 25d
+	sub dx, 40d
+	xor ax, ax
 
-;bresenham line vars
-%assign sy 2
-%assign sx 4
-%assign ydelta 6
-%assign xdelta 8
+	jmp Run_Animation_Loop
 
-Draw_Line_Bresenham:
-	mov bx, word [bp - xfinish]
-	sub bx, word [bp + xstart]
+Short_Wait:
+	push cx
+	push dx
+	push ax
 
-	cmp bx, word 0d
-	jge DX_Not_Negative
-	neg bx
+	xor cx, cx
+	mov dx, 02710h
+	mov ah, 86h
+	int 15h
 
-DX_Not_Negative:
-	mov [bp - xdelta], word bx
+	pop ax
+	pop dx
+	pop cx
 
-	mov bx, word [bp - yfinish]
-	sub bx, word [bp + ystart]
-
-	cmp bx, word 0d
-	jge DY_Not_Negative
-	neg bx
-
-DY_Not_Negative:
-	mov [bp - ydelta], word bx
-
-	mov bx, word [bp + xstart]
-	cmp bx, word [bp - xfinish]
-
-	mov bx, word 1d
-	jl X0_Less_Than_X1
-
-	mov bx, word -1d
-
-X0_Less_Than_X1:
-	mov [bp - sx], word bx
-
-	mov bx, word [bp + ystart]
-	cmp bx, word [bp - yfinish]
-
-	mov bx, word 1d
-	jl Y0_Less_Than_Y1
-
-	mov bx, word -1d
-
-Y0_Less_Than_Y1:
-	mov [bp - sy], word bx
-
-	mov bx, word [bp - xdelta]
-	sub bx, word [bp - ydelta]
-
-	mov cx, word [bp + xstart]
-	mov dx, word [bp + ystart]
-
-Loop_Start:
-	;cx = col num
-	;dx = row num
-	;e2 -> ax
-	;err -> bx
-
-	call Draw_Pixel
-
-	cmp cx, word [bp - xfinish]
-
-	jne Not_Final_X_Point
-
-	cmp dx, word [bp - yfinish]
-	je Loop_Exit
-
-Not_Final_X_Point:
-	mov ax, bx
-	add ax, ax
-
-	mov si, word [bp - ydelta]
-	neg si
-	cmp ax, si
-
-	jng E2_Less_Than_Or_Equal_To_Neg_DY
-
-	sub bx, word [bp - ydelta]
-	add cx, word [bp - sx]
-
-E2_Less_Than_Or_Equal_To_Neg_DY:
-	cmp ax, word [bp - xdelta]
-	jnl E2_Greater_Than_DX
-
-	add bx, word [bp - xdelta]
-	add dx, word [bp - sy]
-
-E2_Greater_Than_DX:
-	jmp Loop_Start
-
-Loop_Exit:
 	ret
-
-line_colour db 9d
-
-available_colors 	db 9
-					db 10
-					db 11
-					db 12
-					db 13
-					db 14
-					db 15

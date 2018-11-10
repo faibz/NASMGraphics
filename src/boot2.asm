@@ -45,13 +45,13 @@ Second_Stage:
 	cmp		dx, 0					; If we were unable to enable the A20 line, we cannot continue the boot
 	je		Cannot_Continue
 
-	call Get_And_Set_Line_Colour
+	call Get_And_Set_Colour
 	call Set_Video_Mode
 
-	push word 200d ;length
+	push word 75d ;length
 	push word 50d ;height
-	push word 5d ;ystart
-	push word 5d ;xstart
+	push word 50d ;ystart
+	push word 25d ;xstart
 	call Draw_Rectangle
 
 	push word 50d ;radius
@@ -59,8 +59,29 @@ Second_Stage:
 	push word 160d; origin x
 	call Draw_Circle
 
+	push word 40d ;y end
+	push word 60d ;x end
+	push word 20d ;y start
+	push word 40d ;x start
+	call Draw_Ellipse ;limitation on registers makes this look like a star
+
+	push word 20d ;y end
+	push word 25d ;x end
+	push word 10d ;y start
+	push word 10d ;x start
+	call Draw_Ellipse
+
+	push word 10d ;height
+	push word 150d ;ystart
+	push word 50d ;xstart
+	call Draw_Triangle
+
+	call Draw_House_Scene
+
+	call Run_Animation ;writes "HI" into the above rectangle
+
 	hlt
-	
+
 Cannot_Continue:	
 	mov		si, wait_for_key_msg
 	call	Console_WriteLine_16
@@ -68,8 +89,6 @@ Cannot_Continue:
 	int     16h                    	; Wait for key press before continuing
 	int     19h                     ; Warm boot computer
 	hlt
-
-colour_select_message db 'Select a colour for the lines. 1: Blue (default) | 2: Green | 3: Cyan | 4: Red | 5: Magenta | 6: Yellow | 7: White', 0
 
 ; 	We are now ready to switch to 32-bit protected mode.  We will see this next week.
 

@@ -54,7 +54,7 @@ Quit_Boot:
 	mov 	si, cannot_continue			; Display 'Cannot continue' message
 	call 	Console_WriteLine_16
 	
-	hlt						
+	hlt				
 	
 ; Data
 
