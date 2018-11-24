@@ -165,14 +165,30 @@ Draw_Circle_Err_NotGreaterThan_CircleY:
 
 Verify_Rectangle_Params:
 	mov dx, [bp + rectxstart]
+
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
+	cmp dx, 319d
+	jg Set_Default_Rectangle_Params
+
 	add dx, [bp + rectlength]
 
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
 	cmp dx, 319d
 	jg Set_Default_Rectangle_Params
 
 	mov dx, [bp + rectystart]
+
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
+	cmp dx, 199d
+	jg Set_Default_Rectangle_Params
+
 	add dx, [bp + rectheight]
 
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
 	cmp dx, 199d
 	jg Set_Default_Rectangle_Params
 
@@ -495,21 +511,37 @@ Ellipse_Y0_Minus_Y1_Not_LessThan_B:
 
 Verify_Triangle_Params:
 	mov cx, [bp + triangleystart]
+
+	cmp cx, 0d
+	jl Set_Default_Triangle_Params
+	cmp cx, 199d
+	jg Set_Default_Triangle_Params
+
 	add cx, [bp + triangleheight]
 
-	cmp cx, word 199d
+	cmp cx, 0d
+	jl Set_Default_Triangle_Params
+	cmp cx, 199d
 	jg Set_Default_Triangle_Params
 
 	mov cx, [bp + trianglexstart]
+
+	cmp cx, 0d
+	jl Set_Default_Triangle_Params
+	cmp cx, 319d
+	jg Set_Default_Triangle_Params
+
 	sub cx, [bp + triangleheight]
 	
-	cmp cx, word 0d
+	cmp cx, 0d
 	jl Set_Default_Triangle_Params
+	cmp cx, 319d
+	jg Set_Default_Triangle_Params
 
 	mov cx, [bp + trianglexstart]
 	add cx, [bp + triangleheight]
 
-	cmp cx, word 319d
+	cmp cx, 319d
 	jg Set_Default_Triangle_Params
 
 	ret

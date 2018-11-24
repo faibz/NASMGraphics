@@ -169,14 +169,30 @@ Draw_Circle_Err_NotGreaterThan_CircleY:
 
 Verify_Rectangle_Params:
 	mov dx, [bp + rectxstart]
+
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
+	cmp dx, 319d
+	jg Set_Default_Rectangle_Params
+
 	add dx, [bp + rectlength]
 
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
 	cmp dx, 319d
 	jg Set_Default_Rectangle_Params
 
 	mov dx, [bp + rectystart]
+
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
+	cmp dx, 199d
+	jg Set_Default_Rectangle_Params
+
 	add dx, [bp + rectheight]
 
+	cmp dx, 0d
+	jl Set_Default_Rectangle_Params
 	cmp dx, 199d
 	jg Set_Default_Rectangle_Params
 
