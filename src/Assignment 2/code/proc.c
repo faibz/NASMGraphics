@@ -614,6 +614,24 @@ int chdir(char* directory)
 	uint16_t curProcCwdLen = strlen(curProc->Cwd);
 	strncpy(pathBuffer,curProc->Cwd, curProcCwdLen);
 
+	if (directory[0] == '.' && directory[1] == '.')
+	{
+		if (curProcCwdLen == 1) return 0;
+
+		pathBuffer[curProcCwdLen - 1] = 0;
+
+		for (uint16_t i = curProcCwdLen - 2; i > 0; --i)
+		{
+			if (pathBuffer[i] == '/')
+			{
+				safestrcpy(curProc->Cwd, pathBuffer, strlen(pathBuffer) + 1);
+				return 0;
+			}
+
+			pathBuffer[i] = 0;
+		}
+	}
+
 	uint16_t newDirectoryLen = strlen(directory);
 	strncpy(pathBuffer + curProcCwdLen, directory, newDirectoryLen);
 
@@ -622,10 +640,10 @@ int chdir(char* directory)
 		strncpy(pathBuffer + curProcCwdLen + newDirectoryLen, "/", 1);
 	}
 
-	safestrcpy(myProcess()->Cwd, pathBuffer, strlen(pathBuffer) + 1);
+	pathBuffer[curProcCwdLen + newDirectoryLen + 1] = 0;
+	safestrcpy(curProc->Cwd, pathBuffer, strlen(pathBuffer) + 1);
 
 	return 0;
-	
 }
 
 int getcwd(char* currentDirectory, int sizeOfBuffer)

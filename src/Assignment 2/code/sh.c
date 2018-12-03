@@ -11,6 +11,7 @@
 #define PIPE  3
 #define LIST  4
 #define BACK  5
+#define LS	  6
 
 #define MAXARGS 10
 
@@ -151,16 +152,13 @@ void runcmd(struct cmd *cmd)
 
 void changeDirectory(char * path)
 {
-	// TODO:  Add call to chdir here
-
 	chdir(path);
 }
 
 void getCurrentDirectory(char * buffer, int bufferSize)
 {
-	// TODO Change this function to use call to getcwd
 	buffer[0] = 0;
-	getcwd(buffer, bufferSize);	
+	getcwd(buffer, bufferSize);
 }
 
 int getcmd(char *buf, int nbuf)
@@ -216,6 +214,7 @@ int fork1(void)
 	{
 		panic("fork");
 	}
+
 	return pid;
 }
 
