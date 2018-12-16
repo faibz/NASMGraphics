@@ -26,6 +26,11 @@ MountInfo  mountInfo;
 // File Allocation Table 
 unsigned char fat[512 * MAXFATSIZE];
 
+MountInfo* getMountInfo(void)
+{
+	return &mountInfo;
+}
+
 void fsFat12Initialise(void)
 {
 	DiskBuffer * bpb = diskBufferRead(0, 0);

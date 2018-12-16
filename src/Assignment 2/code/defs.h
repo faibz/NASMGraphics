@@ -55,6 +55,7 @@ int                         readdir(int, struct _DirectoryEntry*);
 int                         closedir(int);
 
 // fs.c
+MountInfo*                  getMountInfo(void);
 void						fsFat12Initialise(void);
 uint32_t					fsFat12Read(File *, unsigned char *, unsigned int);
 void						fsFat12Close(File *);

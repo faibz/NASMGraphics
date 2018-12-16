@@ -291,15 +291,16 @@ int sys_opendir(void)
 
 	if(argptr(0, &directory, sizeof(*directory)) < 0)
 	{
-		return -1;
+		return 0;
 	}
 
-	if (opendir(directory) < 0)
+	int directoryDescriptor = opendir(directory);
+	if (directoryDescriptor == 0)
 	{
-		return -1;
+		return 0;
 	}
 
-	return 0;
+	return directoryDescriptor;
 }
 
 int sys_readdir(void)
@@ -312,7 +313,7 @@ int sys_readdir(void)
 		return -1;
 	}
 
-	if (argptr(0, (void*)&dirEntry, sizeof(*dirEntry)) < 0)
+	if (argptr(1, (void*)&dirEntry, sizeof(*dirEntry)) < 0)
 	{
 		return -1;
 	}

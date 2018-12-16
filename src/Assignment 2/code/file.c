@@ -5,8 +5,14 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+#include "mmu.h"
+#include "proc.h"
+#include "buf.h"
+#include "bpb.h"
 
 Device devices[NDEV];
+int lastSector = 0;
+int lastIndex = 0;
 
 struct
 {
@@ -131,7 +137,6 @@ int fileRead(File *f, char *addr, int n)
 // Write to file f.
 int fileWrite(File *f, char *addr, int n)
 {
-
 	if (f->Writable == 0)
 	{
 		return -1;
@@ -148,18 +153,192 @@ int fileWrite(File *f, char *addr, int n)
 	panic("fileWrite");
 }
 
+static int fdalloc(File *f)
+{
+	int fd;
+	Process *curproc = myProcess();
+
+	for (fd = 1; fd < NOFILE; fd++) 
+	{
+		if (curproc->OpenFile[fd] == 0) 
+		{
+			curproc->OpenFile[fd] = f;
+			return fd;
+		}
+	}
+	return 0;
+}
+
 int opendir(char* directory)
 {
+	Process* curproc = myProcess();
+	File* file = 0;
+
+	if (directory[0] == ' ')
+	{
+		char modCwd[200];
+		char currentDirectoryName[200];
+		int secondToLastSlashIndex = -1;
+
+		strncpy(modCwd, curproc->Cwd, strlen(curproc->Cwd));
+		modCwd[strlen(curproc->Cwd)] = 0;
+		
+		if (strlen(curproc->Cwd) > 1)
+		{
+			for (int16_t i = strlen(modCwd) - 3; i >= 0; i--)
+			{
+				if (modCwd[i] == '/')
+				{
+					secondToLastSlashIndex = i;
+					break;
+				}
+			}
+
+			for (uint16_t i = secondToLastSlashIndex + 1; i < strlen(modCwd) - 1; ++i)
+			{
+				currentDirectoryName[i - secondToLastSlashIndex - 1] = modCwd[i];
+			}
+
+			currentDirectoryName[strlen(currentDirectoryName)] = 0;
+
+			for (uint16_t i = strlen(modCwd) - 2; i > 0; --i)
+			{
+				if (modCwd[i] == '/')
+				{
+					safestrcpy(curproc->Cwd, modCwd, strlen(modCwd) + 1);
+					break;
+				}
+
+				modCwd[i] = 0;
+			}
+
+			file = fsFat12Open(modCwd, currentDirectoryName, 1);
+		}	
+	}
+	else
+	{
+		file = fsFat12Open(curproc->Cwd, directory, 1);
+	}
+
+	if (strlen(curproc->Cwd) > 1 || file != 0)
+	{
+		return file == 0 ? 0 : fdalloc(file);
+	}
+
+	file = allocateFileStructure();
+	lastSector = 0;
+	lastIndex = 0;
+	curproc->OpenFile[NOFILE-1] = file;
 	
-	return 0;
+	return NOFILE - 1;
 }
 
 int readdir(int directoryDescriptor, struct _DirectoryEntry* dirEntry)
 {
+	Process* curproc = myProcess();
+
+	if (directoryDescriptor <= 0)
+	{
+		return -1;
+	}
+
+	File* file = curproc->OpenFile[directoryDescriptor];
+
+	if (file == 0)
+	{
+		return -1;
+	}
+
+	if (directoryDescriptor < NOFILE - 1)
+	{
+		char buffer[32];
+		fileRead(file, buffer, 32);
+
+		if (buffer[0] == 0) 
+		{
+			return -1;
+		}
+
+		memmove(dirEntry->Filename, buffer, 8);
+		memmove(dirEntry->Ext, buffer + 8, 3);
+		memmove(&dirEntry->Attrib, buffer + 11, 1);
+		memmove(&dirEntry->Reserved, buffer + 12, 1);
+		memmove(&dirEntry->TimeCreatedMs, buffer + 13, 1);
+		memmove(&dirEntry->TimeCreated, buffer + 14, 2);
+		memmove(&dirEntry->DateCreated, buffer + 16, 2);
+		memmove(&dirEntry->DateLastAccessed, buffer + 18, 2);
+		memmove(&dirEntry->FirstClusterHiBytes, buffer + 20, 2);
+		memmove(&dirEntry->LastModTime, buffer + 22, 2);
+		memmove(&dirEntry->LastModDate, buffer + 24, 2);
+		memmove(&dirEntry->FirstCluster, buffer + 26, 2);
+		memmove(&dirEntry->FileSize, buffer + 28, 4);
+	}
+	else
+	{
+		MountInfo* mountInfo = getMountInfo();
+		int rootDirectorySectorCount = mountInfo->NumRootEntries / 16;
+
+		DiskBuffer* diskBuffer;
+		DirectoryEntry* directoryEntry;
+
+		for(; lastSector < rootDirectorySectorCount; lastSector++)
+		{
+			diskBuffer = diskBufferRead(0, mountInfo->RootOffset + lastSector);
+			directoryEntry = (DirectoryEntry*) diskBuffer->Data;
+
+			//because of the nature of this solution, the directory entry needs to be caught up to where it would have been.
+			for(int i = 0; i < lastIndex; i++) 
+			{
+				directoryEntry++;
+			}
+
+			for (; lastIndex < 16; lastIndex++)
+			{
+				if (*(directoryEntry->Filename) != 0)
+				{
+					memmove(dirEntry->Filename, directoryEntry->Filename, 8);
+					memmove(dirEntry->Ext, directoryEntry->Ext, 3);
+					memmove(&dirEntry->Attrib, &directoryEntry->Attrib, 1);
+					memmove(&dirEntry->Reserved, &directoryEntry->Reserved, 1);
+					memmove(&dirEntry->TimeCreatedMs, &directoryEntry->TimeCreatedMs, 1);
+					memmove(&dirEntry->TimeCreated, &directoryEntry->TimeCreated, 2);
+					memmove(&dirEntry->DateCreated, &directoryEntry->DateCreated, 2);
+					memmove(&dirEntry->DateLastAccessed, &directoryEntry->DateLastAccessed, 2);
+					memmove(&dirEntry->FirstClusterHiBytes, &directoryEntry->FirstClusterHiBytes, 2);
+					memmove(&dirEntry->LastModTime, &directoryEntry->LastModTime, 2);
+					memmove(&dirEntry->LastModDate, &directoryEntry->LastModDate, 2);
+					memmove(&dirEntry->FirstCluster, &directoryEntry->FirstCluster, 2);
+					memmove(&dirEntry->FileSize, &directoryEntry->FileSize, 4);
+
+					diskBufferRelease(diskBuffer);
+					lastIndex++;
+					return 0;
+				}
+
+				directoryEntry++;
+			}
+
+			lastIndex = 0;
+			diskBufferRelease(diskBuffer);
+		}
+
+		return -1;
+	}
+
 	return 0;
 }
 
 int closedir(int directoryDescriptor)
 {
+	Process* curproc = myProcess();
+
+	if (curproc->OpenFile[directoryDescriptor] == 0)
+	{
+		return -1;
+	}
+
+	fileClose(curproc->OpenFile[directoryDescriptor]);
+	curproc->OpenFile[directoryDescriptor] = 0;
+
 	return 0;
 }

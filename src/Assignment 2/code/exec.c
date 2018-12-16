@@ -35,7 +35,6 @@ int exec(char *path, char **argv)
 	int oldFilePosition;
 		
 	File * exeFile = fsFat12Open(curproc->Cwd, path, 0);
-	//cprintf(exeFile->Name);
 	if (!exeFile)
 	{
 		return -1;

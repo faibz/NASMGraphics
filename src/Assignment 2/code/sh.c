@@ -3,7 +3,6 @@
 #include "types.h"
 #include "user.h"
 #include "fcntl.h"
-// #include "defs.h" blows up with this included, but needed to call methods?
 
 // Parsed command representation
 #define EXEC  1
