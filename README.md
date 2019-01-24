@@ -21,8 +21,8 @@ To access a drive with its letter, use 'cd /cygdrive/[drive-letter]'.
 
 'bochsrc.bxrc' is essentially a configuration for the virtual machine, which also points to the correct disk image.
 
-## Assignment 1
+## Building and running
 
+1. Run "make" in Cygwin.
 
-
-## Assignment 2
+2. Run bochsrc.bxrc
