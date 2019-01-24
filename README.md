@@ -5,7 +5,7 @@
 
 1. Install [Cygwin](https://cygwin.com/install.html).
 
-When you get to the Select Packages screen, click on the small icon to the right of Devel. The txst to the right of it should change to Install instead of Default. You can now continue with the rest of the install, accepting the rest of the defaults.
+When you get to the Select Packages screen, click on the small icon to the right of Devel. The text to the right of it should change to Install instead of Default. You can now continue with the rest of the install, accepting the rest of the defaults.
 
 Note that Cygwin will take a long time to install, possibly well over an hour, since it pulls all of the tools down over the Internet.
 
@@ -26,3 +26,7 @@ To access a drive with its letter, use 'cd /cygdrive/[drive-letter]'.
 1. Run "make" in Cygwin.
 
 2. Run bochsrc.bxrc
+
+## Credit
+
+Thanks to [amrwc](https://github.com/amrwc) for letting me use his installation guide.
