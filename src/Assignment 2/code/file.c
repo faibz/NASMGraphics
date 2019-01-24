@@ -153,7 +153,7 @@ int fileWrite(File *f, char *addr, int n)
 	panic("fileWrite");
 }
 
-static int fdalloc(File *f)
+int fdalloc(File *f)
 {
 	int fd;
 	Process *curproc = myProcess();
@@ -222,6 +222,7 @@ int opendir(char* directory)
 
 	if (strlen(curproc->Cwd) > 1 || file != 0)
 	{
+		file->Readable = 1;
 		return file == 0 ? 0 : fdalloc(file);
 	}
 
@@ -229,7 +230,7 @@ int opendir(char* directory)
 	lastSector = 0;
 	lastIndex = 0;
 	curproc->OpenFile[NOFILE-1] = file;
-	
+
 	return NOFILE - 1;
 }
 
@@ -249,12 +250,13 @@ int readdir(int directoryDescriptor, struct _DirectoryEntry* dirEntry)
 		return -1;
 	}
 
-	if (directoryDescriptor < NOFILE - 1)
+	if (directoryDescriptor < (NOFILE - 1))
 	{
-		char buffer[32];
+		char buffer[32] = {0};
+
 		fileRead(file, buffer, 32);
 
-		if (buffer[0] == 0) 
+		if (buffer[0] == 0 || buffer[0] == ' ') 
 		{
 			return -1;
 		}
@@ -337,8 +339,9 @@ int closedir(int directoryDescriptor)
 		return -1;
 	}
 
-	fileClose(curproc->OpenFile[directoryDescriptor]);
+	File* file = curproc->OpenFile[directoryDescriptor];
 	curproc->OpenFile[directoryDescriptor] = 0;
+	fileClose(file);
 
 	return 0;
 }

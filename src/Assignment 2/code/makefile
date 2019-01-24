@@ -72,10 +72,9 @@ $(IMAGE).img: boot.bin boot2.bin kernel.sys $(USERPROGS)
 #	Now copy files to z: (we do it this way to avoid problems with cygwin and drive specifiers)
 	cmd /c "copy kernel.sys z:KERNEL.SYS"
 	cmd /c "mkdir z:\usrbin"
-	cmd /c "mkdir z:\usrbin\bob"
+
 #	Copy all of the user programs to z:\usrbin
-	$(foreach var,$(USERPROGS), cmd /c "copy $(var) z:\usrbin\$(var)";)	
-	$(foreach var,$(USERPROGS), cmd /c "copy $(var) z:\usrbin\bob\$(var)";)	
+	$(foreach var,$(USERPROGS), cmd /c "copy $(var) z:\usrbin\$(var)";)		
 
 	ls /cygdrive/z
 #	Unmount the hard disk image

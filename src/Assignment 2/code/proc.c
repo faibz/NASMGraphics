@@ -614,6 +614,7 @@ int chdir(char* directory)
 	uint16_t curProcCwdLen = strlen(curProc->Cwd);
 	strncpy(pathBuffer,curProc->Cwd, curProcCwdLen);
 
+	//cd .. to parent directory
 	if (directory[0] == '.' && directory[1] == '.')
 	{
 		if (curProcCwdLen == 1) return 0;
@@ -632,16 +633,35 @@ int chdir(char* directory)
 		}
 	}
 
-	uint16_t newDirectoryLen = strlen(directory);
-	strncpy(pathBuffer + curProcCwdLen, directory, newDirectoryLen);
-
-	if (directory[newDirectoryLen - 1] != '\\' && directory[newDirectoryLen - 1] != '/')
+	//cd / to root
+	if ((strlen(directory) == 1) && (directory[0] == '\\' || directory[0] == '/'))
 	{
-		strncpy(pathBuffer + curProcCwdLen + newDirectoryLen, "/", 1);
+		safestrcpy(curProc->Cwd, "/0", 2);
 	}
+	else //regular cd (e.g. cd usrbin)
+	{
+		File* directoryFile = fsFat12Open(curProc->Cwd, directory, 1);
+		if (directoryFile == 0)
+		{
+			cprintf("Cannot find path %s%s because it does not exist.\n", curProc->Cwd, directory);
+			return -1;
+		}
+		else
+		{
+			fsFat12Close(directoryFile);
+		}
 
-	pathBuffer[curProcCwdLen + newDirectoryLen + 1] = 0;
-	safestrcpy(curProc->Cwd, pathBuffer, strlen(pathBuffer) + 1);
+		uint16_t newDirectoryLen = strlen(directory);
+		strncpy(pathBuffer + curProcCwdLen, directory, newDirectoryLen);
+
+		if (directory[newDirectoryLen - 1] != '\\' && directory[newDirectoryLen - 1] != '/')
+		{
+			strncpy(pathBuffer + curProcCwdLen + newDirectoryLen, "/", 1);
+		}
+
+		pathBuffer[curProcCwdLen + newDirectoryLen + 1] = 0;
+		safestrcpy(curProc->Cwd, pathBuffer, strlen(pathBuffer) + 1);
+	}
 
 	return 0;
 }
