@@ -1,4 +1,4 @@
-# Systems Programming
+# NASM Graphics (x86 Intel)
 
 ## Setup
 ### Windows
