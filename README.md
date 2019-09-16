@@ -1,10 +1,20 @@
 # NASM Graphics (x86 Intel)
 
-This is an application that draws a variety of shapes in a colour chosen by the user. It also includes a small animation.
+This is an application that uses VGA mode 13h to draw a variety of shapes in a colour chosen by the user. It also includes a small animation.
 
 ## Functionality
 
 The application draws five shapes: an oval, a star/diamond, a rectangle, a triangle, and a circle. These 5 shapes will be in a colour of the user's choosing upon running the application. The application will also slowly write "HI" into the rectangle in a short animation, and draw a simple picture in various colours.
+
+This functionality was implemented in incremental stages with each stage adding functionality to the previous stage. As this repository only contains the result of all the stages together, the functionality used to create the shapes will be described as if part of a single stage.
+
+### Functionality implemented
+* Bresenham's line algorithm
+* Bresenham's circle algorithm
+* Oval algorithm
+* Star algorithm
+* Register value preservation through use of the stack frame
+* Direct VRAM writes for more efficient pixel plotting (stosb)
 
 ![Drawings](https://github.com/faibz/NASMGraphics/blob/master/nasmgraphicsblue.png "Drawings")
 
