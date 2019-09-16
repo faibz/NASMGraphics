@@ -1,5 +1,13 @@
 # NASM Graphics (x86 Intel)
 
+This is an application that draws a variety of shapes in a colour chosen by the user. It also includes a small animation.
+
+## Functionality
+
+The application draws five shapes: an oval, a star/diamond, a rectangle, a triangle, and a circle. These 5 shapes will be in a colour of the user's choosing upon running the application. The application will also slowly write "HI" into the rectangle in a short animation, and draw a simple picture in various colours.
+
+![Drawings](https://github.com/faibz/NASMGraphics/blob/master/nasmgraphicsblue.png "Drawings")
+
 ## Setup
 ### Windows
 
